@@ -1,0 +1,36 @@
+name: Daily Random Commits
+
+on:
+  schedule:
+    - cron: '30 6 * * *'  # 12:00 noon IST (UTC+5:30) every day
+  workflow_dispatch:      # allow manual trigger too
+
+jobs:
+  commit:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Configure git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Make random number of commits
+        run: |
+          COUNT=$((RANDOM % 9 + 1))
+          echo "Today's commit count: $COUNT"
+
+          for i in $(seq 1 $COUNT); do
+            TIMESTAMP=$(date '+%Y-%m-%d %H:%M:%S')
+            echo "Updated on $TIMESTAMP" >> log.txt
+            git add log.txt
+            git commit -m "chore: daily log update ($i/$COUNT)"
+            sleep 2
+          done
+
+          git push origin main
